@@ -12,6 +12,7 @@ SZ_4KiB = 4
 SZ_1MiB = 1024
 SZ_4MiB = 4096
 SZ_32MiB = 32768
+SZ_768MiB = 786432
 
 THRESHOLD_RATIO = 0.25
 
@@ -78,15 +79,19 @@ class LibVirtAutoBalloon:
         used = dom_ram_used(dom)
 
         if actual != used:
-            diff = used * THRESHOLD_RATIO
-            diff = ALIGN_DOWN(diff, SZ_32MiB)
-            if diff == 0:
-                diff = SZ_1MiB
-
             ratio_current = self.dom_usable_ratio(dom)
+            diff = used * THRESHOLD_RATIO
             if ratio_current < 1.0 and actual < total_ram:
+                diff = ALIGN_MEM(diff, SZ_768MiB)
+                if diff == 0:
+                    diff = SZ_1MiB
+                    break
                 dom_balloon(dom, actual + diff)
             elif ratio_current > 1.5 and actual > keep_usable:
+                diff = ALIGN_MEM(diff, SZ_32MiB)
+                if diff == 0:
+                    diff = SZ_1MiB
+                    break
                 dom_balloon(dom, actual - diff)
 
     def dom_print_names(self):
@@ -143,7 +148,7 @@ class LibVirtAutoBalloon:
             sleep(self.sleep_time)
 
 
-def ALIGN_DOWN(x, a):
+def ALIGN_MEM(x, a):
     x = int(x)
     a = int(a)
     return x & ~ (a - 1)
