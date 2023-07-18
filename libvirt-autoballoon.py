@@ -85,13 +85,11 @@ class LibVirtAutoBalloon:
                 diff = ALIGN_MEM(diff, SZ_768MiB)
                 if diff == 0:
                     diff = SZ_1MiB
-                    break
                 dom_balloon(dom, actual + diff)
             elif ratio_current > 1.5 and actual > keep_usable:
                 diff = ALIGN_MEM(diff, SZ_32MiB)
                 if diff == 0:
                     diff = SZ_1MiB
-                    break
                 dom_balloon(dom, actual - diff)
 
     def dom_print_names(self):
